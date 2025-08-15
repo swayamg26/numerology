@@ -77,7 +77,7 @@ function calculateSingleDigit() {
         let total = day + month + year + curr_month + months_after;
         let single_digit = reduceToSingleDigit(total);
 
-        results = Single Digit: ${single_digit};
+        results = `Single Digit: ${single_digit}`; // <-- Backticks!
     }
 
     document.getElementById("results").textContent = results;
