@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Date of Birth to Single Digit</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            padding: 20px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+        }
+        input {
+            padding: 5px;
+            margin: 5px 0;
+            width: 200px;
+        }
+        button {
+            padding: 8px 12px;
+            border: none;
+            cursor: pointer;
+            margin-top: 15px;
+            background-color: #4CAF50;
+            color: white;
+        }
+        pre {
+            background: #eee;
+            padding: 10px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Date of Birth to Single Digit</h2>
+
+<label>Date of Birth (ddmmyyyy):</label>
+<input type="text" id="dob" placeholder="e.g. 01012000">
+
+<label>Current Month (mm):</label>
+<input type="number" id="month" placeholder="e.g. 08">
+
+<br>
+<button type="button" onclick="calculateSingleDigit()">Calculate</button>
+
+<pre id="results"></pre>
+
+<script>
+function reduceToSingleDigit(n) {
+    while (n >= 10) {
+        let sum_digits = 0;
+        while (n > 0) {
+            sum_digits += n % 10;
+            n = Math.floor(n / 10);
+        }
+        n = sum_digits;
+    }
+    return n;
+}
+
+function calculateSingleDigit() {
+    const date = document.getElementById("dob").value.trim();
+    const curr_month = parseInt(document.getElementById("month").value);
+    let results = "";
+
+    if (!date || date.length !== 8) {
+        results = "Invalid Date Format";
+    } else {
+        const day = parseInt(date.substring(0, 2));
+        const month = parseInt(date.substring(2, 4));
+        const year = parseInt(date.substring(4));
+
+        let months_after = (curr_month !== month) ? (12 - month) + curr_month : 0;
+        let total = day + month + year + curr_month + months_after;
+        let single_digit = reduceToSingleDigit(total);
+
+        results = Single Digit: ${single_digit};
+    }
+
+    document.getElementById("results").textContent = results;
+}
+</script>
+
+</body>
+</html>
