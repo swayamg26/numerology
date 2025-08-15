@@ -1,87 +1,136 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Date of Birth to Single Digit</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f8ff;
-            padding: 20px;
-        }
-        label {
-            font-weight: bold;
-            display: block;
-            margin-top: 10px;
-        }
-        input {
-            padding: 5px;
-            margin: 5px 0;
-            width: 200px;
-        }
-        button {
-            padding: 8px 12px;
-            border: none;
-            cursor: pointer;
-            margin-top: 15px;
-            background-color: #4CAF50;
-            color: white;
-        }
-        pre {
-            background: #eee;
-            padding: 10px;
-            margin-top: 15px;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Numerology Calculator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #ffecd2, #fcb69f);
+        text-align: center;
+        padding: 20px;
+        color: #333;
+    }
+    h1 {
+        margin-bottom: 10px;
+        color: #444;
+    }
+    .container {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        max-width: 400px;
+        margin: auto;
+    }
+    input {
+        padding: 10px;
+        font-size: 16px;
+        width: 85%;
+        margin: 8px 0;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        text-align: center;
+    }
+    button {
+        padding: 10px 20px;
+        font-size: 16px;
+        background: #ff7e5f;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+    button:hover {
+        background: #eb6750;
+    }
+    .result {
+        text-align: left;
+        margin-top: 20px;
+        font-size: 16px;
+        line-height: 1.6;
+    }
+    .result strong {
+        color: #ff5733;
+    }
+</style>
 </head>
 <body>
 
-<h2>Date of Birth to Single Digit</h2>
+<h1>Numerology Calculator</h1>
+<div class="container">
+    <input type="text" id="nameInput" placeholder="Enter your name">
+    <input type="text" id="phoneInput" placeholder="Enter phone number">
+    <br>
+    <button onclick="calculate()">Calculate</button>
 
-<label>Date of Birth (ddmmyyyy):</label>
-<input type="text" id="dob" placeholder="e.g. 01012000">
-
-<label>Current Month (mm):</label>
-<input type="number" id="month" placeholder="e.g. 08">
-
-<br>
-<button type="button" onclick="calculateSingleDigit()">Calculate</button>
-
-<pre id="results"></pre>
+    <div class="result" id="output"></div>
+</div>
 
 <script>
-function reduceToSingleDigit(n) {
-    while (n >= 10) {
-        let sum_digits = 0;
-        while (n > 0) {
-            sum_digits += n % 10;
-            n = Math.floor(n / 10);
+    // Pythagorean letter-to-number mapping
+    const values = {
+        A:1,B:2,C:3,D:4,E:5,F:6,G:7,H:8,I:9,
+        J:1,K:2,L:3,M:4,N:5,O:6,P:7,Q:8,R:9,
+        S:1,T:2,U:3,V:4,W:5,X:6,Y:7,Z:8
+    };
+    // Planes
+    const physicalLetters    = ['E','D','M','N','V','W'];
+    const mentalLetters      = ['A','H','J','Q','S','Z'];
+    const emotionalLetters   = ['B','C','F','K','L','O','T','X','U'];
+    const intuitionalLetters = ['G','I','P','R','Y'];
+
+    function reduceToSingleDigit(num) {
+        while (num > 9 && num !== 11 && num !== 22 && num !== 33) {
+            num = num.toString().split('').reduce((a,b) => a + Number(b), 0);
         }
-        n = sum_digits;
-    }
-    return n;
-}
-
-function calculateSingleDigit() {
-    const date = document.getElementById("dob").value.trim();
-    const curr_month = parseInt(document.getElementById("month").value);
-    let results = "";
-
-    if (!date || date.length !== 8) {
-        results = "Invalid Date Format";
-    } else {
-        const day = parseInt(date.substring(0, 2));
-        const month = parseInt(date.substring(2, 4));
-        const year = parseInt(date.substring(4));
-
-        let months_after = (curr_month !== month) ? (12 - month) + curr_month : 0;
-        let total = day + month + year + curr_month + months_after;
-        let single_digit = reduceToSingleDigit(total);
-
-        results = `Single Digit: ${single_digit}`; // <-- Backticks!
+        return num;
     }
 
-    document.getElementById("results").textContent = results;
-}
+    function calculate() {
+        const name = document.getElementById('nameInput').value.toUpperCase().replace(/[^A-Z]/g,"");
+        const phone = document.getElementById('phoneInput').value.replace(/[^0-9]/g,"");
+
+        if(!name && !phone) {
+            alert("Please enter at least a name or phone number!");
+            return;
+        }
+
+        let total=0, physical=0, mental=0, emotional=0, intuitional=0;
+        for (let char of name) {
+            if (values[char]) {
+                total += values[char];
+                if (physicalLetters.includes(char))    physical += values[char];
+                if (mentalLetters.includes(char))      mental += values[char];
+                if (emotionalLetters.includes(char))   emotional += values[char];
+                if (intuitionalLetters.includes(char)) intuitional += values[char];
+            }
+        }
+
+        let phoneSum = 0;
+        for (let digit of phone) {
+            phoneSum += Number(digit);
+        }
+
+        let outputHtml = "";
+        if(name) {
+            outputHtml += `<strong>Results for Name: ${name}</strong><br>`;
+            outputHtml += `Total Sum: ${total}<br>`;
+            outputHtml += `Physical: ${physical}<br>`;
+            outputHtml += `Mental: ${mental}<br>`;
+            outputHtml += `Emotional: ${emotional}<br>`;
+            outputHtml += `Intuitional: ${intuitional}<br><br>`;
+        }
+        if(phone) {
+            outputHtml += `<strong>Phone Number: ${phone}</strong><br>`;
+            outputHtml += `Phone Sum: ${phoneSum} (Reduced: ${reduceToSingleDigit(phoneSum)})<br>`;
+        }
+
+        document.getElementById('output').innerHTML = outputHtml;
+    }
 </script>
 
 </body>
