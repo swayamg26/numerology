@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Date of Birth to Single Digit</title>
+<title>Date of Birth - All Months Chart</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css?family=Poppins:600,700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
   :root {
     --primary: #ff7e5f;
@@ -108,33 +110,48 @@
     outline: 0;
   }
   #result {
-    font-size: 1.18em;
-    color: #27ae60;
+    font-size: 1.13em;
+    color: #e74c3c;
     font-weight: 600;
-    min-height: 26px;
-    margin-top: 14px;
+    min-height: 24px;
+    margin-top: 13px;
     margin-bottom:8px;
     text-align: center;
     transition: color .3s;
   }
+  #chartBox {
+    width: 99%;
+    margin: 20px 0 0 0;
+    max-width: 560px;
+    display: none;
+  }
+  canvas {
+    background: #fff;
+    border-radius: 17px;
+    box-shadow: 0 2px 15px #feb47b31;
+    margin: 0 auto!important;
+    display: block!important;
+  }
   @media (max-width: 650px) {
     h1 { font-size: 1.3em;}
     .container { padding:14px 7vw; margin-top:35px; min-width:unset;}
+    #chartBox {max-width:99vw;}
   }
 </style>
-<link href="https://fonts.googleapis.com/css?family=Poppins:600,700&display=swap" rel="stylesheet">
 </head>
 <body>
 <div id="shine"></div>
 <div class="container">
-  <h1>Date of Birth to Single Digit</h1>
+  <h1>Date of Birth: Your Annual Single Digits</h1>
   <label for="dob">Date of Birth (ddmmyyyy):</label>
   <input type="text" id="dob" maxlength="8" placeholder="e.g. 16081995">
-  <label for="curr_month">Current Month (1–12):</label>
-  <input type="text" id="curr_month" maxlength="2" placeholder="e.g. 8">
-  <button class="btn-calc" onclick="calculateSingleDigit()">Calculate</button>
+  <button class="btn-calc" onclick="showAllDigitsChart()">Show All Months Graph</button>
   <div id="result"></div>
+  <div id="chartBox">
+    <canvas id="monthsChart" width="430" height="320"></canvas>
+  </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 function reduceToSingleDigit(n) {
     while (n >= 10) {
@@ -147,50 +164,75 @@ function reduceToSingleDigit(n) {
     }
     return n;
 }
-function calculateSingleDigit() {
+let monthsChart = null;
+function showAllDigitsChart() {
     const dob = document.getElementById("dob").value.trim();
-    const currMonthStr = document.getElementById("curr_month").value.trim();
     let resultEl = document.getElementById("result");
+    let chartBoxEl = document.getElementById("chartBox");
     if (!/^\d{8}$/.test(dob)) {
         resultEl.style.color="#e74c3c";
         resultEl.textContent = "Please enter valid DOB (8 digits: ddmmyyyy).";
+        chartBoxEl.style.display = "none";
+        if(monthsChart) monthsChart.destroy();
         return;
     }
-    if (!/^\d{1,2}$/.test(currMonthStr)) {
-        resultEl.style.color="#e74c3c";
-        resultEl.textContent = "Please enter valid current month (1 to 12).";
-        return;
-    }
-    const curr_month = parseInt(currMonthStr, 10);
-    if (curr_month < 1 || curr_month > 12) {
-        resultEl.style.color="#e74c3c";
-        resultEl.textContent = "Current month must be between 1 and 12.";
-        return;
-    }
-    try {
-        const day = parseInt(dob.slice(0,2), 10);
-        const month = parseInt(dob.slice(2,4), 10);
-        const year = parseInt(dob.slice(4), 10);
-        // Calculate months after
+    // Parse input
+    const day = parseInt(dob.slice(0,2), 10);
+    const month = parseInt(dob.slice(2,4), 10);
+    const year = parseInt(dob.slice(4), 10);
+
+    // Generate for months 1-12
+    const digits = [];
+    for(let m=1; m<=12; m++) {
+        // your original formula!
         let months_after = 0;
-        if (curr_month !== month) {
-            months_after = (12 - month) + curr_month;
+        if (m !== month) {
+            months_after = (12 - month) + m;
         }
-        let total = day + month + year + curr_month + months_after;
+        let total = day + month + year + m + months_after;
         let single_digit = reduceToSingleDigit(total);
-        resultEl.style.color="#27ae60";
-        resultEl.textContent = `Single Digit: ${single_digit}`;
-    } catch(e) {
-        resultEl.style.color="#e74c3c";
-        resultEl.textContent = "Invalid input!";
+        digits.push(single_digit);
     }
+
+    // Draw chart
+    chartBoxEl.style.display = "block";
+    resultEl.textContent = "";
+    const ctx = document.getElementById('monthsChart').getContext('2d');
+    if(monthsChart) monthsChart.destroy();
+    monthsChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+        datasets: [{
+          label: "Your Single Digit for Each Month",
+          data: digits,
+          backgroundColor: [
+            '#feb47b','#ff7e5f','#43cea2','#dad299','#ffd200','#b8ffd4','#f7971e','#ffb677','#78c8e6','#ffb4c1','#b19cd9','#ffd6a5'
+          ],
+          borderRadius:12,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        animation: { duration: 1200 },
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            suggestedMax: 9,
+            stepSize: 1,
+            grid: { color: '#fcb69f66' },
+            ticks: { precision: 0 }
+          }
+        }
+      }
+    });
 }
 // Allow Enter key for calculation
 document.getElementById("dob").addEventListener("keydown", function(e){
-  if(e.key === "Enter") calculateSingleDigit();
-});
-document.getElementById("curr_month").addEventListener("keydown", function(e){
-  if(e.key === "Enter") calculateSingleDigit();
+  if(e.key === "Enter") showAllDigitsChart();
 });
 </script>
 </body>
