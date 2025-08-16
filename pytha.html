@@ -4,8 +4,8 @@
 <meta charset="UTF-8" />
 <title>Numerology & Mobile Combination Calculator</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<!-- Modern and friendly Inter font -->
 <link href="https://fonts.googleapis.com/css?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
   :root {
     --primary: #ff7e5f;
@@ -133,6 +133,26 @@
     padding-right: 12px;
     font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
   }
+  .reduced-chart-label {
+    margin-top:18px;
+    font-weight:700;
+    font-size:1.14em;
+    color: var(--primary);
+    text-align:center;
+    letter-spacing:1.3px;
+  }
+  #reducedChartBox {
+    margin:4px auto 12px auto;
+    max-width: 540px;
+    width:99%;
+    display:none;
+  }
+  #reducedChart {
+    width: 100%!important;
+    background: #fff;
+    border-radius: 13px;
+    box-shadow: 0 3px 18px #feb47b31;
+  }
   .download-pdf-container {
     display: flex;
     flex-direction: column;
@@ -172,65 +192,11 @@
     word-break: break-all;
     letter-spacing: 0.5px;
   }
-  .result::-webkit-scrollbar {
-    width: 9px;
-  }
-  .result::-webkit-scrollbar-thumb {
-    background: linear-gradient(90deg, var(--primary), var(--secondary));
-    border-radius: 8px;
-  }
-  .result::-webkit-scrollbar-track {
-    background: #ffe9c4;
-  }
-  #downloadBtn {
-    width: 100%;
-    font-size: 1.18em;
-    padding: 12px 0;
-    cursor: pointer;
-    border: none;
-    border-radius: 18px;
-    background: linear-gradient(90deg, #43cea2 0%, #185a9d 100%);
-    box-shadow: 0 0 16px 4px #43cea280;
-    color: white;
-    font-weight: 700;
-    transition: background 0.22s, box-shadow 0.22s, transform 0.18s;
-  }
-  #downloadBtn:hover {
-    background: linear-gradient(90deg, #185a9d 0%, #43cea2 100%);
-    box-shadow: 0 0 28px 6px #185a9db3;
-    transform: scale(1.05);
-    outline: 0;
-  }
-  #downloadBtn:disabled {
-    background: #ccc;
-    box-shadow: none;
-    color: #666;
-    cursor: not-allowed;
-    transform: none;
-  }
   @media (max-width: 640px) {
-    h1 {
-      font-size: 1.9em;
-    }
-    .container {
-      padding: 24px 8px;
-    }
-    input[type="text"] {
-      font-size: 1em;
-      padding: 10px;
-    }
-    button, #downloadBtn {
-      font-size: 1.05em;
-      padding: 12px 0;
-    }
-    .result {
-      font-size: 0.95em;
-      max-height: 240px;
-    }
-    .combos-center {
-      font-size: 1.10em;
-      margin: 5px 0 5px 0;
-    }
+    h1 {font-size:1.9em;}
+    .container { padding:24px 8px;}
+    .result {font-size: 0.95em;max-height:240px;}
+    #reducedChartBox {max-width:97vw;}
   }
 </style>
 </head>
@@ -244,12 +210,15 @@
 <input type="text" id="phoneInput" placeholder="10-digit phone number" maxlength="10" />
 <button id="calcBtn">Calculate</button>
 <div class="result" id="output"></div>
+<div id="reducedChartBox">
+  <div class="reduced-chart-label">Reduced Numbers (Strengths Chart)</div>
+  <canvas id="reducedChart" width="420" height="260"></canvas>
+</div>
 <div class="download-pdf-container" id="downloadSection" style="display:none;">
- <span class="download-pdf-label">Download all meanings with PDF</span>
- <button id="downloadBtn" onclick="downloadPDF()">Download as PDF</button>
+  <span class="download-pdf-label">Download all meanings with PDF</span>
+  <button id="downloadBtn" onclick="downloadPDF()">Download as PDF</button>
 </div>
 </div>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="conj.js"></script>
 <script>
@@ -262,8 +231,6 @@ const physicalLetters = ['E','D','M','N','V','W'];
 const mentalLetters = ['A','H','J','Q','S','Z'];
 const emotionalLetters = ['B','C','F','K','L','O','T','X','U'];
 const intuitionalLetters = ['G','I','P','R','Y'];
-
-// Returns pairs of digits from phone excluding consecutive repeated digits
 function getConjunctions(phone) {
   let combos = [];
   for (let i = 0; i < phone.length - 1; i++) {
@@ -273,15 +240,14 @@ function getConjunctions(phone) {
   }
   return combos;
 }
-
 function reduceToSingleDigit(num){
  while(num>9 && num!==11 && num!==22 && num!==33){
   num=num.toString().split('').reduce((a,b)=>a+Number(b),0);
  }
  return num;
 }
-
 let lastConjunctions=[];
+let reducedChart = null;
 
 function calculate(){
  const name=document.getElementById('nameInput').value.toUpperCase().replace(/[^A-Z]/g,"");
@@ -289,20 +255,6 @@ function calculate(){
  const phone=phoneRaw.replace(/0/g,"");
  const outputEl=document.getElementById('output');
  const downloadSection=document.getElementById('downloadSection');
- if(!name && !phoneRaw){
-  alert("Please enter at least a name or phone number!");
-  outputEl.textContent="";
-  downloadSection.style.display="none";
-  lastConjunctions=[];
-  return;
- }
- if(phoneRaw && phoneRaw.length!==10){
-  alert("Please enter a valid 10-digit phone number.");
-  outputEl.textContent="";
-  downloadSection.style.display="none";
-  lastConjunctions=[];
-  return;
- }
  let total=0,physical=0,mental=0,emotional=0,intuitional=0;
  for(let char of name){
   if(values[char]){
@@ -313,7 +265,17 @@ function calculate(){
    if(intuitionalLetters.includes(char))intuitional+=values[char];
   }
  }
- let outputHtml="";
+ let reducedValues = [
+   reduceToSingleDigit(physical),
+   reduceToSingleDigit(mental),
+   reduceToSingleDigit(emotional),
+   reduceToSingleDigit(intuitional)
+ ];
+ // For PDF later
+ window._reducedPDFValues = reducedValues;
+
+ // Build Name analysis section
+ let outputHtml = "";
  if(name){
   outputHtml+=`<span class="heading">NAME ANALYSIS:</span>\n`;
   outputHtml+=`Total Sum: ${total}\n`;
@@ -322,27 +284,80 @@ function calculate(){
   outputHtml+=`Emotional: ${emotional}→Reduced:${reduceToSingleDigit(emotional)}\n`;
   outputHtml+=`Intuitional: ${intuitional}→Reduced:${reduceToSingleDigit(intuitional)}\n\n`;
  }
+ outputEl.innerHTML = outputHtml.replace(/\n/g,"<br>");
+
+ // Show the reduced chart AFTER Name analysis, always in correct order:
+ const chartBox = document.getElementById("reducedChartBox");
+ const chartCanvas = document.getElementById("reducedChart");
+ if(name){
+   chartBox.style.display = "block";
+   if(reducedChart) reducedChart.destroy();
+   reducedChart = new Chart(chartCanvas.getContext('2d'), {
+     type: 'bar',
+     data: {
+       labels: ['Physical', 'Mental', 'Emotional', 'Intuitional'],
+       datasets: [{
+         label: "Reduced Numbers",
+         data: reducedValues,
+         backgroundColor: ['#feb47b', '#ff7e5f', '#43cea2', '#dad299'],
+         borderWidth: 2,
+         borderRadius: 13
+       }]
+     },
+     options: {
+       animation: { duration: 1040 },
+       plugins: { legend: { display: false } },
+       scales: {
+         y: { beginAtZero: true, max: 9, grid: { color: '#fcb69f80' }, stepSize:1 },
+         x: { grid: { display: false } }
+       }
+     }
+   });
+ } else {
+   chartBox.style.display = "none";
+   if(reducedChart) reducedChart.destroy();
+ }
+
+ // Continue rest of output (Phone/Conjunctions)
+ if(!name && !phoneRaw){
+  alert("Please enter at least a name or phone number!");
+  outputEl.innerHTML="";
+  downloadSection.style.display="none";
+  lastConjunctions=[];
+  chartBox.style.display = "none";
+  if(reducedChart) reducedChart.destroy();
+  return;
+ }
+ if(phoneRaw && phoneRaw.length!==10){
+  alert("Please enter a valid 10-digit phone number.");
+  outputEl.innerHTML="";
+  downloadSection.style.display="none";
+  lastConjunctions=[];
+  chartBox.style.display = "none";
+  if(reducedChart) reducedChart.destroy();
+  return;
+ }
  if(phoneRaw){
   let phoneSum=phoneRaw.split("").reduce((a,b)=>a+Number(b),0);
   const conjunctions=getConjunctions(phone);
   lastConjunctions=conjunctions;
-  outputHtml+=`<span class="heading">PHONE ANALYSIS:</span>\n`;
-  outputHtml+=`Original: ${phoneRaw}\n`;
-  outputHtml+=`Without Zeros: ${phone}\n`;
-  outputHtml+=`Phone Sum: ${phoneSum} (Reduced: ${reduceToSingleDigit(phoneSum)})\n`;
+  let phoneHtml = "";
+  phoneHtml+=`<span class="heading">PHONE ANALYSIS:</span>\n`;
+  phoneHtml+=`Original: ${phoneRaw}\n`;
+  phoneHtml+=`Without Zeros: ${phone}\n`;
+  phoneHtml+=`Phone Sum: ${phoneSum} (Reduced: ${reduceToSingleDigit(phoneSum)})\n`;
   if(phone.length>1){
-   outputHtml+=`First Digit: ${phone[0]} (60%), Second Digit: ${phone} (40%)\n\n`;
+   phoneHtml+=`First Digit: ${phone[0]} (60%), Second Digit: ${phone} (40%)\n\n`;
   }
-  // Responsive/output: Center combos if mobile or always
-  outputHtml+=`<span class="heading">CONJUNCTIONS:</span>\n`;
-  outputHtml+=`<span class="combos-center">${conjunctions.join(', ')}</span>\n`;
+  phoneHtml+=`<span class="heading">CONJUNCTIONS:</span>\n`;
+  phoneHtml+=`<span class="combos-center">${conjunctions.join(', ')}</span>\n`;
+  outputEl.innerHTML = outputEl.innerHTML + phoneHtml.replace(/\n/g,"<br>");
  }else{
   lastConjunctions=[];
  }
- outputEl.innerHTML=outputHtml.replace(/\n/g,"<br>");
  downloadSection.style.display=lastConjunctions.length===0?"none":"flex";
 }
-
+// PDF: Include a nice Reduced Numbers Table before Phone Analysis
 function downloadPDF(){
  const { jsPDF } = window.jspdf;
  const doc = new jsPDF();
@@ -356,59 +371,61 @@ function downloadPDF(){
  const pageWidth = doc.internal.pageSize.getWidth();
  const maxLineWidth = pageWidth - 2*margin;
  let y = margin;
-
- // Today's date in a nice style
  const today = new Date();
  const dateString = today.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-
  const colorPrimary = [255,126,95];
  const colorAccent = [67,206,162];
  const colorHeading = [35,37,38];
  const colorSubtle = [68,68,68];
  const colorMeaning = [99,89,77];
-
  doc.setFont('helvetica','bold');
  doc.setFontSize(11.5);
  doc.setTextColor(...colorHeading);
  doc.text(`Report generated on ${dateString}`, pageWidth/2, y, {align:'center'});
  y+=9;
-
  doc.setFont('helvetica','bold');
  doc.setFontSize(20);
  doc.setTextColor(...colorPrimary);
  doc.text("Numerology & Mobile Combination Report",pageWidth/2,y,{align:'center'});
  y+=14;
-
  doc.setFont('helvetica','bold');
  doc.setFontSize(14);
  doc.setTextColor(...colorHeading);
+ let total=0,physical=0,mental=0,emotional=0,intuitional=0;
+ for(let char of name){
+   if(values[char]){
+     total+=values[char];
+     if(physicalLetters.includes(char))physical+=values[char];
+     if(mentalLetters.includes(char))mental+=values[char];
+     if(emotionalLetters.includes(char))emotional+=values[char];
+     if(intuitionalLetters.includes(char))intuitional+=values[char];
+   }
+ }
+ let reducedValues = window._reducedPDFValues ||
+   [reduceToSingleDigit(physical),reduceToSingleDigit(mental),reduceToSingleDigit(emotional),reduceToSingleDigit(intuitional)];
  if(name){
   doc.text("NAME ANALYSIS",margin,y); y+=8;
   doc.setFont('helvetica','normal');
   doc.setFontSize(12);
   doc.setTextColor(...colorSubtle);
-  let total=0,physical=0,mental=0,emotional=0,intuitional=0;
-  for(let char of name){
-   if(values[char]){
-    total+=values[char];
-    if(physicalLetters.includes(char))physical+=values[char];
-    if(mentalLetters.includes(char))mental+=values[char];
-    if(emotionalLetters.includes(char))emotional+=values[char];
-    if(intuitionalLetters.includes(char))intuitional+=values[char];
-   }
-  }
   doc.text(`Total Sum: ${total}`,margin,y); y+=7;
-  doc.text(`Physical: ${physical}→Reduced:${reduceToSingleDigit(physical)}`,margin,y); y+=7;
-  doc.text(`Mental: ${mental}→Reduced:${reduceToSingleDigit(mental)}`,margin,y); y+=7;
-  doc.text(`Emotional: ${emotional}→Reduced:${reduceToSingleDigit(emotional)}`,margin,y); y+=7;
-  doc.text(`Intuitional: ${intuitional}→Reduced:${reduceToSingleDigit(intuitional)}`,margin,y); y+=12;
+  doc.text(`Physical: ${physical}→Reduced:${reducedValues[0]}`,margin,y); y+=7;
+  doc.text(`Mental: ${mental}→Reduced:${reducedValues}`,margin,y); y+=7;
+  doc.text(`Emotional: ${emotional}→Reduced:${reducedValues}`,margin,y); y+=7;
+  doc.text(`Intuitional: ${intuitional}→Reduced:${reducedValues}`,margin,y); y+=8;
+  doc.setFont('helvetica','bold');
+  doc.setTextColor(...colorPrimary);
+  doc.text("Reduced Numbers Chart:", margin, y); y+=8;
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(12);
+  doc.setTextColor(...colorSubtle);
+  doc.text(`Physical: ${reducedValues},  Mental: ${reducedValues},  Emotional: ${reducedValues},  Intuitional: ${reducedValues}`, margin, y); y+=10;
  }
  if(phoneRaw){
   doc.setFont('helvetica','bold');
   doc.setFontSize(14);
   doc.setTextColor(...colorHeading);
   doc.text("PHONE ANALYSIS",margin,y); y+=8;
-
   doc.setFont('helvetica','normal');
   doc.setFontSize(12);
   doc.setTextColor(...colorSubtle);
@@ -419,7 +436,6 @@ function downloadPDF(){
   if(phone.length>1){
    doc.text(`First Digit: ${phone[0]} (60%), Second Digit: ${phone} (40%)`,margin,y); y+=10;
   }
-
   let conjunctions=lastConjunctions;
   doc.setFont('helvetica','bold');
   doc.setTextColor(...colorAccent);
@@ -429,7 +445,6 @@ function downloadPDF(){
   doc.setTextColor(...colorAccent);
   doc.text(`Combinations: ${conjunctions.join(', ')}`, pageWidth/2, y, {align:'center'}); y+=10;
   doc.setFontSize(12);
-
   for(let pair of conjunctions){
    if(y>270){doc.addPage();y=margin;}
    doc.setFont('helvetica','bold');
