@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Name Analysis Calculator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link href="https://fonts.googleapis.com/css?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root {
+    --primary: #ff7e5f;
+    --secondary: #feb47b;
+    --accent: #43cea2;
+    --dark: #232526;
+    --light: #fff8e7;
+    --button-glow: 0 0 16px 3px #feb47b88;
+    --shadow: 0 6px 32px 0 #23252624;
+  }
+  body {
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    padding: 0 20px 40px;
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 70% 20%, var(--accent) 0%, var(--secondary) 65%, var(--primary) 100%);
+    color: var(--dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+  }
+  h1 {
+    margin: 60px 0 20px;
+    font-size: 2.5em;
+    letter-spacing: 2px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+    text-shadow: 0 2px 20px #ffecd2aa;
+    text-align: center;
+  }
+  .container {
+    background: linear-gradient(115deg, #fff8e7 0%, #ffe0c2 100%);
+    padding: 36px 40px 28px 40px;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  label {
+    font-weight: 600;
+    color: var(--primary);
+    font-size: 1.15em;
+    display: block;
+    margin-top: 16px;
+    margin-bottom: 8px;
+  }
+  input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1em;
+    border-radius: 10px;
+    border: 1.5px solid #feb47b;
+    background: #fffdfa;
+    box-shadow: 0 3px 14px 0 #feb47b22;
+    text-align: center;
+    transition: border-color 0.3s;
+  }
+  input[type="text"]:focus {
+    border-color: var(--primary);
+    outline: none;
+  }
+  button {
+    margin-top: 24px;
+    width: 100%;
+    font-size: 1.22em;
+    padding: 14px 0;
+    cursor: pointer;
+    border: none;
+    border-radius: 18px;
+    background: linear-gradient(95deg, var(--primary) 60%, var(--secondary) 100%);
+    box-shadow: var(--button-glow), var(--shadow);
+    color: white;
+    font-weight: 700;
+    transition: background 0.22s, transform 0.18s, box-shadow 0.22s;
+  }
+  button:hover:not(:disabled) {
+    background: linear-gradient(95deg, var(--primary) 42%, var(--accent) 100%);
+    transform: scale(1.04) translateY(-2px);
+    box-shadow: 0 0 28px 5px var(--accent);
+  }
+  .result {
+    margin-top: 28px;
+    white-space: pre-wrap;
+    font-size: 1.03em;
+    line-height: 1.5;
+    color: var(--dark);
+    max-height: 360px;
+    overflow-y: auto;
+    padding-right: 12px;
+  }
+  .chart-container {
+    margin: 24px auto 0 auto;
+    width: 100%;
+    max-width: 480px;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 3px 18px #feb47b31;
+    padding: 22px 12px 18px 12px;
+  }
+  .chart-label {
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.23em;
+    color: var(--primary);
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+  }
+  @media (max-width: 640px) {
+    h1 {font-size:1.6em;}
+    .container { padding:22px 6px 20px 6px;}
+    .result {font-size: 0.95em; max-height: 240px;}
+    .chart-container {max-width:97vw; padding:10px 0;}
+  }
+</style>
+</head>
+<body>
+<h1>Name Analysis Calculator</h1>
+<div class="container">
+  <label for="nameInput">Enter your name</label>
+  <input type="text" id="nameInput" placeholder="Your name" />
+  <button id="calcBtn">Calculate</button>
+  <div class="result" id="output"></div>
+  <div class="chart-container" id="chartSection" style="display:none;">
+    <div class="chart-label">Your Strengths (Reduced Numbers)</div>
+    <canvas id="resultChart" width="400" height="240"></canvas>
+  </div>
+</div>
+<script>
+  const values = {
+    A:1,B:2,C:3,D:4,E:5,F:6,G:7,H:8,I:9,
+    J:1,K:2,L:3,M:4,N:5,O:6,P:7,Q:8,R:9,
+    S:1,T:2,U:3,V:4,W:5,X:6,Y:7,Z:8
+  };
+  const physicalLetters = ['E','D','M','N','V','W'];
+  const mentalLetters = ['A','H','J','Q','S','Z'];
+  const emotionalLetters = ['B','C','F','K','L','O','T','X','U'];
+  const intuitionalLetters = ['G','I','P','R','Y'];
+
+  let chartInstance = null;
+
+  function reduceToSingleDigit(num) {
+    while (num > 9 && num !== 11 && num !== 22 && num !== 33) {
+      num = num.toString().split('').reduce((a,b) => a + Number(b), 0);
+    }
+    return num;
+  }
+
+  function calculate() {
+    const name = document.getElementById('nameInput').value.toUpperCase().replace(/[^A-Z]/g, "");
+    const outputEl = document.getElementById('output');
+    const chartSection = document.getElementById('chartSection');
+    let total=0, physical=0, mental=0, emotional=0, intuitional=0;
+
+    for(let char of name){
+      if(values[char]){
+        total += values[char];
+        if(physicalLetters.includes(char)) physical += values[char];
+        if(mentalLetters.includes(char)) mental += values[char];
+        if(emotionalLetters.includes(char)) emotional += values[char];
+        if(intuitionalLetters.includes(char)) intuitional += values[char];
+      }
+    }
+    let reducedValues = [
+      reduceToSingleDigit(physical),
+      reduceToSingleDigit(mental),
+      reduceToSingleDigit(emotional),
+      reduceToSingleDigit(intuitional)
+    ];
+
+    if(!name){
+      alert("Please enter a valid name.");
+      outputEl.innerHTML = "";
+      chartSection.style.display = "none";
+      if(chartInstance) chartInstance.destroy();
+      return;
+    }
+
+    let outputHtml = "";
+    outputHtml += `<span class="heading">NAME ANALYSIS:</span>\n`;
+    outputHtml += `Total Sum: ${total}\n`;
+    outputHtml += `Physical: ${physical} → Reduced: ${reducedValues[0]}\n`;
+    outputHtml += `Mental: ${mental} → Reduced: ${reducedValues[1]}\n`;
+    outputHtml += `Emotional: ${emotional} → Reduced: ${reducedValues[2]}\n`;
+    outputHtml += `Intuitional: ${intuitional} → Reduced: ${reducedValues[3]}\n`;
+
+    outputEl.innerHTML = outputHtml.replace(/\n/g, "<br>");
+
+    // Show chart
+    chartSection.style.display = "block";
+    const ctx = document.getElementById('resultChart').getContext('2d');
+    if(chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Physical', 'Mental', 'Emotional', 'Intuitional'],
+        datasets: [{
+          label: "Reduced Values",
+          data: reducedValues,
+          backgroundColor: ['#feb47b', '#ff7e5f', '#43cea2', '#dad299'],
+          borderWidth: 2,
+          borderRadius: 15,
+          hoverBackgroundColor: ['#ff7e5f', '#feb47b', '#43cea2', '#f7971e']
+        }]
+      },
+      options: {
+        animation: { duration: 950 },
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: true }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 9,
+            grid: { color: '#fcb69f80' }
+          },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  document.getElementById('calcBtn').addEventListener('click', calculate);
+</script>
+</body>
+</html>
