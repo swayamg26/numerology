@@ -50,7 +50,7 @@
     gap: 25px;
     max-width: 100vw;
   }
-  #options a, #options button {
+  #options a {
     min-width: 220px;
     padding: 18px 36px;
     font-size: 1.18em;
@@ -66,7 +66,7 @@
     overflow: hidden;
     transition: background 0.22s, box-shadow 0.22s, transform 0.18s;
   }
-  #options a::before, #options button::before {
+  #options a::before {
     content: "";
     position: absolute;
     top: -60px; left: -60px;
@@ -76,21 +76,21 @@
     pointer-events: none;
     z-index: 0;
   }
-  #options a:hover, #options button:hover {
+  #options a:hover {
     background: linear-gradient(95deg, var(--primary) 42%, var(--accent) 100%);
     transform: scale(1.045) translateY(-2px);
     box-shadow: 0 0 24px 4px var(--accent);
     outline: 0;
   }
-  #options a:hover::before, #options button:hover::before {
+  #options a:hover::before {
     opacity: 1;
   }
-  #options a:active, #options button:active {
+  #options a:active {
     background: var(--accent);
     transform: scale(0.98);
     box-shadow: 0 0 24px 4px var(--primary);
   }
-  #options button.option3 {
+  #options a.option3 {
     background: linear-gradient(95deg, var(--primary) 60%, var(--secondary) 100%);
     color: #fff;
     font-style: normal;
@@ -267,7 +267,7 @@
   }
   @media (max-width: 650px) {
     h1 { font-size: 1.3em; margin-top: 36px;}
-    #options a, #options button { min-width: 135px; font-size:0.97em; padding:12px 6px;}
+    #options a { min-width: 135px; font-size:0.97em; padding:12px 6px;}
     .modal-content { padding: 16px 5vw;}
     #shine { width:140px;height:140px;}
     .social-row { margin-top: 36px; gap: 12px;}
@@ -284,9 +284,9 @@
 <div id="shine"></div>
 <h1>What do you want to do today?</h1>
 <div id="options">
-  <a href="pytha.html">Pythagorean Numerology Calculator</a>
-  <a href="3.html">Fadic Number Calculator</a>
-  <button class="option3" onclick="showMessage('Option 3 selected! You can customize this action.')">Option 3</button>
+  <a href="name.html">Name Analysis</a>
+  <a href="pytha.html">Both Name and Number</a>
+  <a href="3.html" class="option3">Fadic Number Calculator</a>
 </div>
 <div id="message"></div>
 <!-- Social & Contact row -->
