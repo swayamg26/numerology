@@ -4,6 +4,8 @@
 <meta charset="UTF-8" />
 <title>Numerology & Mobile Combination Calculator</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- Modern and friendly Inter font -->
+<link href="https://fonts.googleapis.com/css?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
 <style>
   :root {
     --primary: #ff7e5f;
@@ -15,7 +17,7 @@
     --shadow: 0 6px 32px 0 #23252624;
   }
   body {
-    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
     padding: 0 20px 40px;
     margin: 0;
     min-height: 100vh;
@@ -54,6 +56,7 @@
     text-shadow: 0 2px 20px #ffecd2aa;
     text-align: center;
     z-index: 2;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
   }
   .container {
     background: linear-gradient(115deg, #fff8e7 0%, #ffe0c2 100%);
@@ -64,6 +67,7 @@
     max-width: 900px;
     z-index: 2;
     position: relative;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
   }
   label {
     font-weight: 600;
@@ -72,6 +76,7 @@
     display: block;
     margin-top: 16px;
     margin-bottom: 8px;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
   }
   input[type="text"] {
     width: 100%;
@@ -81,7 +86,7 @@
     border: 1.5px solid #feb47b;
     background: #fffdfa;
     box-shadow: 0 3px 14px 0 #feb47b22;
-    font-family: inherit;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
     transition: border-color 0.3s;
     text-align: center;
   }
@@ -102,6 +107,7 @@
     color: white;
     font-weight: 700;
     transition: background 0.22s, transform 0.18s, box-shadow 0.22s;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
   }
   button:hover:not(:disabled) {
     background: linear-gradient(95deg, var(--primary) 42%, var(--accent) 100%);
@@ -122,10 +128,10 @@
     font-size: 1.03em;
     line-height: 1.5;
     color: var(--dark);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     max-height: 360px;
     overflow-y: auto;
     padding-right: 12px;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
   }
   .download-pdf-container {
     display: flex;
@@ -154,6 +160,17 @@
     display: block;
     margin-top: 12px;
     margin-bottom: 4px;
+    text-align: left;
+  }
+  .combos-center {
+    display: block;
+    text-align: center;
+    font-weight: 600;
+    margin: 8px 0 0 0;
+    font-size: 1.15em;
+    color: var(--primary);
+    word-break: break-all;
+    letter-spacing: 0.5px;
   }
   .result::-webkit-scrollbar {
     width: 9px;
@@ -196,7 +213,7 @@
       font-size: 1.9em;
     }
     .container {
-      padding: 24px 20px;
+      padding: 24px 8px;
     }
     input[type="text"] {
       font-size: 1em;
@@ -209,6 +226,10 @@
     .result {
       font-size: 0.95em;
       max-height: 240px;
+    }
+    .combos-center {
+      font-size: 1.10em;
+      margin: 5px 0 5px 0;
     }
   }
 </style>
@@ -242,12 +263,15 @@ const mentalLetters = ['A','H','J','Q','S','Z'];
 const emotionalLetters = ['B','C','F','K','L','O','T','X','U'];
 const intuitionalLetters = ['G','I','P','R','Y'];
 
-function getConjunctions(phone){
- let combos=[];
- for(let i=0;i<phone.length-1;i++){
-  combos.push(phone[i]+phone[i+1]);
- }
- return combos;
+// Returns pairs of digits from phone excluding consecutive repeated digits
+function getConjunctions(phone) {
+  let combos = [];
+  for (let i = 0; i < phone.length - 1; i++) {
+    if (phone[i] !== phone[i+1]) {
+      combos.push(phone[i] + phone[i+1]);
+    }
+  }
+  return combos;
 }
 
 function reduceToSingleDigit(num){
@@ -309,8 +333,9 @@ function calculate(){
   if(phone.length>1){
    outputHtml+=`First Digit: ${phone[0]} (60%), Second Digit: ${phone} (40%)\n\n`;
   }
+  // Responsive/output: Center combos if mobile or always
   outputHtml+=`<span class="heading">CONJUNCTIONS:</span>\n`;
-  outputHtml+=`<span class="pair">${conjunctions.join(', ')}</span>\n`;
+  outputHtml+=`<span class="combos-center">${conjunctions.join(', ')}</span>\n`;
  }else{
   lastConjunctions=[];
  }
@@ -319,24 +344,34 @@ function calculate(){
 }
 
 function downloadPDF(){
- const { jsPDF }=window.jspdf;
- const doc=new jsPDF();
+ const { jsPDF } = window.jspdf;
+ const doc = new jsPDF();
  const nameRaw=document.getElementById('nameInput').value.trim();
- const userName=nameRaw.length>0 ? nameRaw.replace(/[^\w]+/g,"_") : "Numerology";
- const filename=userName+"_analysis.pdf";
- const name=userName.toUpperCase().replace(/[^A-Z]/g,"");
- const phoneRaw=document.getElementById('phoneInput').value.replace(/[^0-9]/g,"");
- const phone=phoneRaw.replace(/0/g,"");
- const margin=16;
- const pageWidth=doc.internal.pageSize.getWidth();
- const maxLineWidth=pageWidth-2*margin;
- let y=margin;
+ const userName = nameRaw.length > 0 ? nameRaw.replace(/[^\w]+/g,"_") : "Numerology";
+ const filename = userName + "_analysis.pdf";
+ const name = userName.toUpperCase().replace(/[^A-Z]/g,"");
+ const phoneRaw = document.getElementById('phoneInput').value.replace(/[^0-9]/g,"");
+ const phone = phoneRaw.replace(/0/g,"");
+ const margin = 16;
+ const pageWidth = doc.internal.pageSize.getWidth();
+ const maxLineWidth = pageWidth - 2*margin;
+ let y = margin;
 
- const colorPrimary=[255,126,95];
- const colorAccent=[67,206,162];
- const colorHeading=[35,37,38];
- const colorSubtle=[68,68,68];
- const colorMeaning=[99,89,77];
+ // Today's date in a nice style
+ const today = new Date();
+ const dateString = today.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+
+ const colorPrimary = [255,126,95];
+ const colorAccent = [67,206,162];
+ const colorHeading = [35,37,38];
+ const colorSubtle = [68,68,68];
+ const colorMeaning = [99,89,77];
+
+ doc.setFont('helvetica','bold');
+ doc.setFontSize(11.5);
+ doc.setTextColor(...colorHeading);
+ doc.text(`Report generated on ${dateString}`, pageWidth/2, y, {align:'center'});
+ y+=9;
 
  doc.setFont('helvetica','bold');
  doc.setFontSize(20);
@@ -348,8 +383,7 @@ function downloadPDF(){
  doc.setFontSize(14);
  doc.setTextColor(...colorHeading);
  if(name){
-  doc.text("NAME ANALYSIS",margin,y);
-  y+=8;
+  doc.text("NAME ANALYSIS",margin,y); y+=8;
   doc.setFont('helvetica','normal');
   doc.setFontSize(12);
   doc.setTextColor(...colorSubtle);
@@ -373,8 +407,7 @@ function downloadPDF(){
   doc.setFont('helvetica','bold');
   doc.setFontSize(14);
   doc.setTextColor(...colorHeading);
-  doc.text("PHONE ANALYSIS",margin,y);
-  y+=8;
+  doc.text("PHONE ANALYSIS",margin,y); y+=8;
 
   doc.setFont('helvetica','normal');
   doc.setFontSize(12);
@@ -384,20 +417,17 @@ function downloadPDF(){
   doc.text(`Without Zeros: ${phone}`,margin,y); y+=7;
   doc.text(`Phone Sum: ${phoneSum} (Reduced: ${reduceToSingleDigit(phoneSum)})`,margin,y); y+=7;
   if(phone.length>1){
-   doc.text(`First Digit: ${phone[0]} (60%), Second Digit: ${phone} (40%)`,margin,y);
-   y+=10;
+   doc.text(`First Digit: ${phone[0]} (60%), Second Digit: ${phone} (40%)`,margin,y); y+=10;
   }
 
   let conjunctions=lastConjunctions;
   doc.setFont('helvetica','bold');
   doc.setTextColor(...colorAccent);
   doc.setFontSize(13);
-  doc.text("CONJUNCTION MEANINGS",margin,y);
-  y+=8;
+  doc.text("CONJUNCTION MEANINGS",margin,y); y+=8;
   doc.setFontSize(12);
   doc.setTextColor(...colorAccent);
-  doc.text(`Combinations: ${conjunctions.join(', ')}`,margin,y);
-  y+=10;
+  doc.text(`Combinations: ${conjunctions.join(', ')}`, pageWidth/2, y, {align:'center'}); y+=10;
   doc.setFontSize(12);
 
   for(let pair of conjunctions){
@@ -419,7 +449,6 @@ function downloadPDF(){
  }
  doc.save(filename);
 }
-
 document.getElementById('calcBtn').addEventListener('click', calculate);
 document.getElementById('downloadBtn').addEventListener('click', downloadPDF);
 </script>
