@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>Name Analysis Calculator</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<link href="https://fonts.googleapis.com/css?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="design.css" />
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8"/>
+  <title>Name Analysis Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link href="https://fonts.googleapis.com/css?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="design.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 <h1>Name Analysis Calculator</h1>
@@ -19,93 +20,143 @@
     <div class="chart-label">Your Strengths (Reduced Numbers)</div>
     <canvas id="resultChart" width="400" height="240"></canvas>
   </div>
+
+  <!-- Actions shown after calculate -->
+  <div id="actions" style="display:none;">
+    <button onclick="downloadPDF()">Download as PDF</button>
+    <button onclick="downloadPNG()">Download Chart as PNG</button>
+    <button id="whatsappBtn" onclick="shareOnWhatsApp()">Share on WhatsApp</button>
+    <button onclick="showHistory()">Show Past Results</button>
+  </div>
+  
+  <div class="result" id="recommendation"></div>
 </div>
 <script>
-  const values = {
-    A:1,B:2,C:3,D:4,E:5,F:6,G:7,H:8,I:9,
-    J:1,K:2,L:3,M:4,N:5,O:6,P:7,Q:8,R:9,
-    S:1,T:2,U:3,V:4,W:5,X:6,Y:7,Z:8
-  };
-  const physicalLetters = ['E','D','M','N','V','W'];
-  const mentalLetters = ['A','H','J','Q','S','Z'];
-  const emotionalLetters = ['B','C','F','K','L','O','T','X','U'];
-  const intuitionalLetters = ['G','I','P','R','Y'];
-  let chartInstance = null;
-  function reduceToSingleDigit(num) {
-    while (num > 9 && num !== 11 && num !== 22 && num !== 33) {
-      num = num.toString().split('').reduce((a,b) => a + Number(b), 0);
-    }
-    return num;
+const values = {
+ A:1,B:2,C:3,D:4,E:5,F:6,G:7,H:8,I:9,
+ J:1,K:2,L:3,M:4,N:5,O:6,P:7,Q:8,R:9,
+ S:1,T:2,U:3,V:4,W:5,X:6,Y:7,Z:8
+};
+const physicalLetters = ['E','D','M','N','V','W'];
+const mentalLetters = ['A','H','J','Q','S','Z'];
+const emotionalLetters = ['B','C','F','K','L','O','T','X','U'];
+const intuitionalLetters = ['G','I','P','R','Y'];
+let chartInstance = null;
+function reduceToSingleDigit(num) {
+  while (num > 9 && num !== 11 && num !== 22 && num !== 33) {
+    num = num.toString().split('').reduce((a,b) => a + Number(b), 0);
   }
-  function calculate() {
-    const name = document.getElementById('nameInput').value.toUpperCase().replace(/[^A-Z]/g, "");
-    const outputEl = document.getElementById('output');
-    const chartSection = document.getElementById('chartSection');
-    let total=0, physical=0, mental=0, emotional=0, intuitional=0;
-    for(let char of name){
-      if(values[char]){
-        total += values[char];
-        if(physicalLetters.includes(char)) physical += values[char];
-        if(mentalLetters.includes(char)) mental += values[char];
-        if(emotionalLetters.includes(char)) emotional += values[char];
-        if(intuitionalLetters.includes(char)) intuitional += values[char];
-      }
+  return num;
+}
+function getRecommendations(res) {
+  const colors = ["Red", "Yellow", "Green", "Blue"];
+  let vals = [res.physicalR, res.mentalR, res.emotionalR, res.intuitionalR];
+  let luckyNumber = Math.max(...vals);
+  let color = colors[luckyNumber % colors.length];
+  return `Your lucky number: ${luckyNumber}. Your recommended color: ${color}. Consider using this number and color for important decisions.`;
+}
+function saveHistory(res) {
+  let hist = JSON.parse(localStorage.getItem('nameHistory') || "[]");
+  hist.push(res);
+  localStorage.setItem('nameHistory', JSON.stringify(hist));
+}
+function showHistory() {
+  let hist = JSON.parse(localStorage.getItem('nameHistory') || "[]");
+  let msg = hist.length ? hist.map((h,i)=>`#${i+1}: ${h.name} — Total:${h.total} Physical:${h.physical}->${h.physicalR} Mental:${h.mental}->${h.mentalR} Emotional:${h.emotional}->${h.emotionalR} Intuitional:${h.intuitional}->${h.intuitionalR}`).join('\n') : "No history yet.";
+  alert(msg);
+}
+function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  let name = document.getElementById('nameInput').value.trim();
+  const vals = window.lastNameResult;
+  doc.text(`Name Analysis Report for ${name}`, 12, 16);
+  doc.text(`Total: ${vals.total}`, 12, 24);
+  doc.text(`Physical: ${vals.physical}->${vals.physicalR}`, 12, 32);
+  doc.text(`Mental: ${vals.mental}->${vals.mentalR}`, 12, 40);
+  doc.text(`Emotional: ${vals.emotional}->${vals.emotionalR}`, 12, 48);
+  doc.text(`Intuitional: ${vals.intuitional}->${vals.intuitionalR}`, 12, 56);
+  doc.save(`${name || "name"}_analysis.pdf`);
+}
+function downloadPNG() {
+  const canvas = document.getElementById('resultChart');
+  const imgURL = canvas.toDataURL('image/png');
+  const link = document.createElement('a');
+  link.href = imgURL;
+  link.download = "chart.png";
+  link.click();
+}
+function shareOnWhatsApp() {
+  let out = document.getElementById('output').textContent.replace(/\n/g, "%0A");
+  let url = "https://wa.me/?text=" + encodeURIComponent(out);
+  window.open(url, '_blank');
+}
+document.getElementById('calcBtn').addEventListener('click', function() {
+  const name = document.getElementById('nameInput').value.toUpperCase().replace(/[^A-Z]/g,"");
+  const outputEl = document.getElementById('output');
+  const chartSection = document.getElementById('chartSection');
+  let total=0, physical=0, mental=0, emotional=0, intuitional=0;
+  for(let char of name){
+    if(values[char]){
+      total += values[char];
+      if(physicalLetters.includes(char)) physical += values[char];
+      if(mentalLetters.includes(char)) mental += values[char];
+      if(emotionalLetters.includes(char)) emotional += values[char];
+      if(intuitionalLetters.includes(char)) intuitional += values[char];
     }
-    let reducedValues = [
-      reduceToSingleDigit(physical),
-      reduceToSingleDigit(mental),
-      reduceToSingleDigit(emotional),
-      reduceToSingleDigit(intuitional)
-    ];
-    if(!name){
-      alert("Please enter a valid name.");
-      outputEl.innerHTML = "";
-      chartSection.style.display = "none";
-      if(chartInstance) chartInstance.destroy();
-      return;
-    }
-    let outputHtml = "";
-    outputHtml += `<span class="heading">NAME ANALYSIS:</span>\n`;
-    outputHtml += `Total Sum: ${total}\n`;
-    outputHtml += `Physical: ${physical} → Reduced: ${reducedValues[0]}\n`;
-    outputHtml += `Mental: ${mental} → Reduced: ${reducedValues[1]}\n`;
-    outputHtml += `Emotional: ${emotional} → Reduced: ${reducedValues[2]}\n`;
-    outputHtml += `Intuitional: ${intuitional} → Reduced: ${reducedValues[3]}\n`;
-    outputEl.innerHTML = outputHtml.replace(/\n/g, "<br>");
-    chartSection.style.display = "block";
-    const ctx = document.getElementById('resultChart').getContext('2d');
-    if(chartInstance) chartInstance.destroy();
-    chartInstance = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['Physical', 'Mental', 'Emotional', 'Intuitional'],
-        datasets: [{
-          label: "Reduced Values",
-          data: reducedValues,
-          backgroundColor: ['#feb47b', '#ff7e5f', '#43cea2', '#dad299'],
-          borderWidth: 2,
-          borderRadius: 15,
-          hoverBackgroundColor: ['#ff7e5f', '#feb47b', '#43cea2', '#f7971e']
-        }]
+  }
+  let physicalR = reduceToSingleDigit(physical);
+  let mentalR = reduceToSingleDigit(mental);
+  let emotionalR = reduceToSingleDigit(emotional);
+  let intuitionalR = reduceToSingleDigit(intuitional);
+  window.lastNameResult = { name, total, physical, mental, emotional, intuitional, physicalR, mentalR, emotionalR, intuitionalR };
+
+  // Chart
+  chartSection.style.display = "block";
+  const ctx = document.getElementById('resultChart').getContext('2d');
+  if(chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Physical', 'Mental', 'Emotional', 'Intuitional'],
+      datasets: [{
+        label: "Reduced Values",
+        data: [physicalR, mentalR, emotionalR, intuitionalR],
+        backgroundColor: ['#feb47b', '#ff7e5f', '#43cea2', '#dad299'],
+        borderWidth: 2,
+        borderRadius: 15,
+        hoverBackgroundColor: ['#ff7e5f', '#feb47b', '#43cea2', '#f7971e']
+      }]
+    },
+    options: {
+      animation: { duration: 950 },
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: true }
       },
-      options: {
-        animation: { duration: 950 },
-        plugins: {
-          legend: { display: false },
-          tooltip: { enabled: true }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            max: 9,
-            grid: { color: '#fcb69f80' }
-          },
-          x: { grid: { display: false } }
-        }
-      }
-    });
-  }
-  document.getElementById('calcBtn').addEventListener('click', calculate);
+      scales: { y: { beginAtZero: true, max: 9 } }
+    }
+  });
+  document.getElementById('resultChart').onclick = function(evt){
+    let pts = chartInstance.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+    if(pts.length){
+      let label = chartInstance.data.labels[pts[0].index];
+      alert(label + ": Represents your " + label.toLowerCase() + " plane of personality!");
+    }
+  };
+
+  // Show outputs with "->" formatting
+  outputEl.innerHTML = `<b>NAME ANALYSIS:</b><br>Total Sum: ${total}<br>
+    Physical: ${physical}->${physicalR}<br>
+    Mental: ${mental}->${mentalR}<br>
+    Emotional: ${emotional}->${emotionalR}<br>
+    Intuitional: ${intuitional}->${intuitionalR}`;
+
+  document.getElementById('recommendation').innerHTML = getRecommendations(window.lastNameResult);
+
+  document.getElementById('actions').style.display = '';
+  saveHistory(window.lastNameResult);
+});
 </script>
 </body>
 </html>
