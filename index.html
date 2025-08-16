@@ -3,51 +3,334 @@
 <head>
 <meta charset="UTF-8" />
 <title>Choose Your Action</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
+  :root {
+    --primary: #ff7e5f;
+    --secondary: #feb47b;
+    --accent: #43cea2;
+    --dark: #232526;
+    --light: #fff8e7;
+    --button-glow: 0 0 16px 3px #feb47b88;
+    --shadow: 0 6px 32px 0 #23252624;
+  }
   body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    padding: 40px;
-    background: linear-gradient(135deg, #ffecd2, #fcb69f);
-    color: #333;
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+    padding: 0;
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 70% 20%, var(--accent) 0%, var(--secondary) 65%, var(--primary) 100%);
+    color: var(--dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 {
+    margin-top: 60px;
+    font-size: 2.5em;
+    letter-spacing: 2px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+    text-shadow: 0 2px 20px #ffecd2aa;
+    animation: dropIn 1.2s cubic-bezier(.48,-0.09,.47,1.22) 0.2s both;
+  }
+  @keyframes dropIn {
+    0% { transform: translateY(-50px); opacity: 0;}
+    100% { transform: translateY(0); opacity: 1;}
+  }
+  #options {
+    margin-top: 48px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 25px;
   }
   #options a, #options button {
-    display: inline-block;
-    padding: 15px 30px;
-    margin: 15px;
-    font-size: 18px;
-    cursor: pointer;
-    border-radius: 8px;
-    background-color: #ff7e5f;
-    color: white;
-    font-weight: bold;
+    min-width: 220px;
+    padding: 18px 36px;
+    font-size: 1.18em;
+    border-radius: 18px;
+    background: linear-gradient(95deg, var(--primary) 60%, var(--secondary) 100%);
+    box-shadow: var(--button-glow), var(--shadow);
+    color: #fff;
+    font-weight: 700;
     text-decoration: none;
     border: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.22s, box-shadow 0.22s, transform 0.18s;
+  }
+  #options a::before, #options button::before {
+    content: "";
+    position: absolute;
+    top: -60px; left: -60px;
+    width: 150px; height: 150px;
+    background: radial-gradient(circle closest-side, #fff9db88, transparent 80%);
+    opacity: 0; transition: opacity 0.4s;
+    pointer-events: none;
+    z-index: 0;
   }
   #options a:hover, #options button:hover {
-    background-color: #eb6750;
+    background: linear-gradient(95deg, var(--primary) 42%, var(--accent) 100%);
+    transform: scale(1.045) translateY(-2px);
+    box-shadow: 0 0 24px 4px var(--accent);
+    outline: 0;
+  }
+  #options a:hover::before, #options button:hover::before {
+    opacity: 1;
+  }
+  #options a:active, #options button:active {
+    background: var(--accent);
+    transform: scale(0.98);
+    box-shadow: 0 0 24px 4px var(--primary);
+  }
+  #options button.option3 {
+    background: linear-gradient(95deg, var(--primary) 60%, var(--secondary) 100%);
+    color: #fff;
+    font-style: normal;
+    letter-spacing: 0;
   }
   #message {
+    min-height: 34px;
     margin-top: 40px;
-    font-size: 18px;
-    color: #444;
+    font-size: 1.14em;
+    color: var(--dark);
+    text-shadow: 0 1px 6px var(--secondary);
+    transition: all 0.5s;
+  }
+  #shine {
+    position: absolute;
+    top: 10vh; left: 50vw;
+    width: 230px; height: 230px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fffbe680 0%, transparent 80%);
+    filter: blur(18px);
+    z-index: 0;
+    pointer-events: none;
+    animation: shineSpin 14s linear infinite;
+  }
+  @keyframes shineSpin {
+    0% {transform: rotate(0);}
+    100% {transform: rotate(360deg);}
+  }
+  /* Contact Modal Styles */
+  #contactModal {
+    display: none;
+    position: fixed;
+    z-index: 12;
+    left: 0; top: 0;
+    width: 100vw; height: 100vh;
+    background: #23252688;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.35s;
+  }
+  #contactModal.active { display: flex; }
+  .modal-content {
+    background: linear-gradient(115deg,#fff8e7 0%, #ffe0c2 100%);
+    padding: 40px 28px;
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    text-align: left;
+    min-width: 320px;
+    max-width: 92vw;
+    position: relative;
+    z-index:1;
+    animation: modalIn 0.42s cubic-bezier(.48,-0.09,.47,1.22);
+    border: 2px solid var(--secondary);
+  }
+  @keyframes modalIn { 0%{transform:scale(0.7); opacity:0;} 100%{transform:scale(1); opacity:1;} }
+  @keyframes fadeIn { 0%{opacity:0;} 100%{opacity:1;} }
+  .modal-content h2 {
+    margin-bottom: 16px;
+    font-size: 1.4em;
+    font-weight: 700;
+    color: var(--primary);
+    text-shadow: 0 1px 6px var(--accent);
+  }
+  .modal-content label {
+    font-weight:600;
+    margin-top:7px;
+    display:block;
+    color:var(--primary);
+  }
+  .modal-content input, .modal-content textarea {
+    width: 98%;
+    padding: 10px;
+    margin-top: 5px;
+    font-size: 1em;
+    border-radius: 7px;
+    border: 1px solid #feb47b;
+    margin-bottom: 16px;
+    background: #fffdfa;
+    box-shadow: 0 2px 10px 0 #feb47b22;
+    font-family: inherit;
+    transition: border 0.2s;
+  }
+  .modal-content input:focus, .modal-content textarea:focus {
+    border: 1.5px solid var(--primary);
+    outline: none;
+  }
+  .close-btn, .submit-btn {
+    display: inline-block;
+    padding: 9px 27px;
+    margin: 8px 4px 0 0;
+    font-size: 15px;
+    border-radius: 9px;
+    background: linear-gradient(100deg,var(--accent),var(--secondary));
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.23s;
+    box-shadow: 0 2px 8px #43cea244;
+  }
+  .close-btn:hover, .submit-btn:hover {
+    background: linear-gradient(99deg,#ff7e5f,#fcb69f);
+    color: var(--dark);
+  }
+  .contact-decor {
+    position: absolute; bottom: -34px; right: -44px;
+    width: 65px; height: 65px; z-index:0;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+    opacity:0.65; filter: blur(6px);
+  }
+  #contactStatus {
+    font-size:1em; color:#27ae60; margin-top:12px; font-weight:600;
+  }
+  /* Social links in next row */
+  .social-row {
+    width: 100%;
+    margin-top: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .social-links {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 0;
+  }
+  .social-links a {
+    display: inline-block;
+    width: 45px; height: 45px;
+    border-radius: 50%;
+    background: linear-gradient(60deg, var(--secondary), var(--accent));
+    color: var(--dark);
+    font-size: 26px;
+    text-align: center;
+    padding-top: 9px;
+    box-shadow: 0 2px 8px var(--accent);
+    transition: box-shadow 0.3s, background 0.3s;
+    outline: none;
+    text-decoration: none;
+  }
+  .social-links a:hover {
+    background: linear-gradient(60deg, var(--primary), var(--accent));
+    color: #fff;
+    box-shadow: 0 6px 14px var(--primary);
+    transform: scale(1.1);
+  }
+  .cta-contact {
+    margin-top: 0px;
+    padding: 12px 38px;
+    font-size: 1.1em;
+    font-weight: 700;
+    border-radius: 30px;
+    background: linear-gradient(45deg, #f7971e, #ffd200);
+    border: none;
+    color: #311b00;
+    box-shadow: 0 4px 20px #ffce38a3;
+    cursor: pointer;
+    transition: background 0.3s, box-shadow 0.3s, transform 0.2s;
+  }
+  .cta-contact:hover {
+    background: linear-gradient(45deg, #ffd200, #f7971e);
+    box-shadow: 0 6px 28px #ffc700cc;
+    transform: translateY(-3px);
+    color: #311b00;
+  }
+  .cta-contact:active {
+    transform: translateY(1px);
+  }
+  @media (max-width: 650px) {
+    h1 { font-size: 1.3em; margin-top: 36px;}
+    #options a, #options button { min-width: 135px; font-size:0.97em; padding:12px 6px;}
+    .modal-content { padding: 16px 5vw;}
+    #shine { width:140px;height:140px;}
+    .social-row { margin-top: 36px; gap: 12px;}
+    .social-links { gap: 18px;}
+    .social-links a { width:32px;height:32px;font-size:18px; padding-top:6px;}
+    .cta-contact { padding: 10px 28px; font-size: 1em;}
   }
 </style>
+<!-- Google font & icon support -->
+<link href="https://fonts.googleapis.com/css?family=Poppins:600,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
+<div id="shine"></div>
 <h1>What do you want to do today?</h1>
 <div id="options">
-  <!-- Pythagorean Numerology Calculator -->
-  <a href="pytha.html">Run Pythagorean Numerology Calculator</a>
-  <!-- Fadic Number Calculator -->
-  <a href="3.html">Run Fadic Number Calculator</a>
-  <!-- Placeholder Option 3 -->
-  <button onclick="showMessage('Option 3 selected! You can customize this action.')">Option 3</button>
+  <a href="pytha.html">Pythagorean Numerology Calculator</a>
+  <a href="3.html">Fadic Number Calculator</a>
+  <button class="option3" onclick="showMessage('Option 3 selected! You can customize this action.')">Option 3</button>
 </div>
 <div id="message"></div>
+<!-- Social & Contact row -->
+<div class="social-row">
+  <div class="social-links">
+    <a href="#" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+    <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+    <a href="#" title="YouTube"><i class="fab fa-youtube"></i></a>
+  </div>
+  <button class="cta-contact" onclick="openContact()">Contact Us</button>
+</div>
+<!-- Contact Us Modal -->
+<div id="contactModal">
+  <div class="modal-content">
+    <span class="contact-decor"></span>
+    <h2>Contact Us</h2>
+    <form id="contactForm" onsubmit="return sendContact();">
+      <label for="name">Your Name:</label>
+      <input type="text" id="name" name="name" required autocomplete="name" />
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email" required autocomplete="email" />
+      <label for="msg">Message:</label>
+      <textarea id="msg" name="msg" required rows="3" autocomplete="off"></textarea>
+      <button class="submit-btn" type="submit">Send</button>
+      <button class="close-btn" type="button" onclick="closeContact()">Cancel</button>
+    </form>
+    <div id="contactStatus"></div>
+  </div>
+</div>
 <script>
   function showMessage(msg) {
     document.getElementById('message').textContent = msg;
+    document.getElementById('message').style.color = "#27ae60";
+    setTimeout(function() {
+      document.getElementById('message').textContent = '';
+      document.getElementById('message').style.color = "#232526";
+    }, 2000);
+  }
+  function openContact() {
+    document.getElementById('contactModal').classList.add('active');
+    document.getElementById('contactStatus').textContent = '';
+  }
+  function closeContact() {
+    document.getElementById('contactModal').classList.remove('active');
+    document.getElementById('contactForm').reset();
+  }
+  function sendContact() {
+    document.getElementById('contactStatus').textContent = 'Thank you for reaching out! We will get back to you soon.';
+    setTimeout(closeContact, 1700);
+    return false;
   }
 </script>
 </body>
