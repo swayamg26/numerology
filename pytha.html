@@ -134,21 +134,21 @@
     font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
   }
   .reduced-chart-label {
-    margin-top:18px;
-    font-weight:700;
-    font-size:1.14em;
+    margin-top: 14px;
+    font-weight: 700;
+    font-size: 1.14em;
     color: var(--primary);
-    text-align:center;
-    letter-spacing:1.3px;
+    text-align: center;
+    letter-spacing: 1.3px;
   }
   #reducedChartBox {
-    margin:4px auto 12px auto;
+    margin: 4px auto 12px auto;
     max-width: 540px;
-    width:99%;
-    display:none;
+    width: 99%;
+    display: none;
   }
   #reducedChart {
-    width: 100%!important;
+    width: 100% !important;
     background: #fff;
     border-radius: 13px;
     box-shadow: 0 3px 18px #feb47b31;
@@ -195,7 +195,7 @@
   @media (max-width: 640px) {
     h1 {font-size:1.9em;}
     .container { padding:24px 8px;}
-    .result {font-size: 0.95em;max-height:240px;}
+    .result {font-size: 0.95em; max-height: 240px;}
     #reducedChartBox {max-width:97vw;}
   }
 </style>
@@ -248,7 +248,6 @@ function reduceToSingleDigit(num){
 }
 let lastConjunctions=[];
 let reducedChart = null;
-
 function calculate(){
  const name=document.getElementById('nameInput').value.toUpperCase().replace(/[^A-Z]/g,"");
  const phoneRaw=document.getElementById('phoneInput').value.replace(/[^0-9]/g,"");
@@ -271,22 +270,21 @@ function calculate(){
    reduceToSingleDigit(emotional),
    reduceToSingleDigit(intuitional)
  ];
- // For PDF later
  window._reducedPDFValues = reducedValues;
 
- // Build Name analysis section
+ // DISPLAY ORDER: outputHtml (name analysis), then chart, then phone/conjunctions
  let outputHtml = "";
  if(name){
   outputHtml+=`<span class="heading">NAME ANALYSIS:</span>\n`;
   outputHtml+=`Total Sum: ${total}\n`;
-  outputHtml+=`Physical: ${physical}→Reduced:${reduceToSingleDigit(physical)}\n`;
-  outputHtml+=`Mental: ${mental}→Reduced:${reduceToSingleDigit(mental)}\n`;
-  outputHtml+=`Emotional: ${emotional}→Reduced:${reduceToSingleDigit(emotional)}\n`;
-  outputHtml+=`Intuitional: ${intuitional}→Reduced:${reduceToSingleDigit(intuitional)}\n\n`;
+  outputHtml+=`Physical: ${physical}→Reduced:${reducedValues[0]}\n`;
+  outputHtml+=`Mental: ${mental}→Reduced:${reducedValues[1]}\n`;
+  outputHtml+=`Emotional: ${emotional}→Reduced:${reducedValues[2]}\n`;
+  outputHtml+=`Intuitional: ${intuitional}→Reduced:${reducedValues[3]}\n\n`;
  }
  outputEl.innerHTML = outputHtml.replace(/\n/g,"<br>");
 
- // Show the reduced chart AFTER Name analysis, always in correct order:
+ // Chart displays always after name analysis and before phone/conjunctions
  const chartBox = document.getElementById("reducedChartBox");
  const chartCanvas = document.getElementById("reducedChart");
  if(name){
@@ -317,8 +315,6 @@ function calculate(){
    chartBox.style.display = "none";
    if(reducedChart) reducedChart.destroy();
  }
-
- // Continue rest of output (Phone/Conjunctions)
  if(!name && !phoneRaw){
   alert("Please enter at least a name or phone number!");
   outputEl.innerHTML="";
@@ -357,7 +353,6 @@ function calculate(){
  }
  downloadSection.style.display=lastConjunctions.length===0?"none":"flex";
 }
-// PDF: Include a nice Reduced Numbers Table before Phone Analysis
 function downloadPDF(){
  const { jsPDF } = window.jspdf;
  const doc = new jsPDF();
@@ -401,25 +396,45 @@ function downloadPDF(){
      if(intuitionalLetters.includes(char))intuitional+=values[char];
    }
  }
- let reducedValues = window._reducedPDFValues ||
-   [reduceToSingleDigit(physical),reduceToSingleDigit(mental),reduceToSingleDigit(emotional),reduceToSingleDigit(intuitional)];
+ let reducedValues = window._reducedPDFValues || [reduceToSingleDigit(physical),reduceToSingleDigit(mental),reduceToSingleDigit(emotional),reduceToSingleDigit(intuitional)];
  if(name){
   doc.text("NAME ANALYSIS",margin,y); y+=8;
   doc.setFont('helvetica','normal');
   doc.setFontSize(12);
   doc.setTextColor(...colorSubtle);
   doc.text(`Total Sum: ${total}`,margin,y); y+=7;
-  doc.text(`Physical: ${physical}→Reduced:${reducedValues[0]}`,margin,y); y+=7;
-  doc.text(`Mental: ${mental}→Reduced:${reducedValues}`,margin,y); y+=7;
-  doc.text(`Emotional: ${emotional}→Reduced:${reducedValues}`,margin,y); y+=7;
-  doc.text(`Intuitional: ${intuitional}→Reduced:${reducedValues}`,margin,y); y+=8;
+  doc.text(`Physical: ${physical} → Reduced: ${reducedValues[0]}`,margin,y); y+=7;
+  doc.text(`Mental: ${mental} → Reduced: ${reducedValues[1]}`,margin,y); y+=7;
+  doc.text(`Emotional: ${emotional} → Reduced: ${reducedValues[2]}`,margin,y); y+=7;
+  doc.text(`Intuitional: ${intuitional} → Reduced: ${reducedValues[3]}`,margin,y); y+=8;
+
+  // Table form of reduced values
   doc.setFont('helvetica','bold');
   doc.setTextColor(...colorPrimary);
-  doc.text("Reduced Numbers Chart:", margin, y); y+=8;
+  doc.text("Reduced Numbers (By Plane):", margin, y);
+  y+=8;
   doc.setFont('helvetica','normal');
   doc.setFontSize(12);
-  doc.setTextColor(...colorSubtle);
-  doc.text(`Physical: ${reducedValues},  Mental: ${reducedValues},  Emotional: ${reducedValues},  Intuitional: ${reducedValues}`, margin, y); y+=10;
+  doc.setTextColor(...colorHeading);
+  
+  const xStart = margin;
+  const boxWidth = 38;
+  const boxHeight = 8;
+  const labelY = y;
+  const valueY = y + 6;
+
+  const labels = ['Physical', 'Mental', 'Emotional', 'Intuitional'];
+  for(let i=0; i<labels.length; i++){
+    doc.rect(xStart + i * boxWidth, labelY, boxWidth, boxHeight);
+    doc.text(labels[i], xStart + i * boxWidth + 4, labelY + 6);
+  }
+  y+=boxHeight;
+
+  for(let i=0; i<reducedValues.length; i++){
+    doc.rect(xStart + i * boxWidth, y, boxWidth, boxHeight);
+    doc.text(String(reducedValues[i]), xStart + i * boxWidth + 14, y + 6);
+  }
+  y+=boxHeight + 8;
  }
  if(phoneRaw){
   doc.setFont('helvetica','bold');
