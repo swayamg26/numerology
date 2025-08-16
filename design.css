@@ -4,12 +4,13 @@
   --accent: #43cea2;
   --dark: #232526;
   --light: #fff8e7;
-  --button-glow: 0 0 16px 3px #feb47b88;
+  --button-glow: 0 0 16px 3px #feb47b70;
   --shadow: 0 6px 32px 0 #23252624;
 }
+
 body {
   font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-  padding: 0 20px 40px;
+  padding: 0 18px 32px;
   margin: 0;
   min-height: 100vh;
   background: radial-gradient(circle at 70% 20%, var(--accent) 0%, var(--secondary) 65%, var(--primary) 100%);
@@ -19,58 +20,66 @@ body {
   align-items: center;
   overflow-x: hidden;
 }
+
 h1 {
-  margin: 60px 0 20px;
-  font-size: 2.5em;
-  letter-spacing: 2px;
+  margin: 54px 0 18px;
+  font-size: 2.3em;
+  letter-spacing: 1.5px;
   background: linear-gradient(90deg, var(--primary), var(--secondary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: 800;
   text-shadow: 0 2px 20px #ffecd2aa;
   text-align: center;
+  transition: font-size 0.22s;
 }
+
 .container {
   background: linear-gradient(115deg, #fff8e7 0%, #ffe0c2 100%);
-  padding: 36px 40px 28px 40px;
-  border-radius: 20px;
+  padding: 36px 28px 25px 28px;
+  border-radius: 22px;
   box-shadow: var(--shadow);
   width: 100%;
-  max-width: 600px;
+  max-width: 540px;
   margin: 0 auto;
+  position: relative;
 }
+
 label {
   font-weight: 600;
   color: var(--primary);
-  font-size: 1.15em;
+  font-size: 1.12em;
   display: block;
-  margin-top: 16px;
-  margin-bottom: 8px;
+  margin-top: 15px;
+  margin-bottom: 7px;
 }
-input[type="text"] {
+
+input[type="text"], input[type="email"], textarea {
   width: 100%;
-  max-width: 100%;
-  min-width: 0;
   padding: 12px;
-  font-size: 1.1em;
+  font-size: 1.09em;
   border-radius: 10px;
   border: 1.5px solid #feb47b;
   background: #fffdfa;
   box-shadow: 0 3px 14px 0 #feb47b22;
   text-align: center;
-  transition: border-color 0.3s;
+  transition: border-color 0.28s, box-shadow 0.22s;
   box-sizing: border-box;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  font-family: inherit;
+  resize: vertical;
 }
-input[type="text"]:focus {
+input:focus, textarea:focus {
   border-color: var(--primary);
+  box-shadow: 0 0 0 2px #ff7e5f22;
   outline: none;
 }
-button {
-  margin-top: 24px;
+
+button, .btn-calc, .cta-contact, .submit-btn, .close-btn {
+  margin-top: 22px;
   width: 100%;
-  font-size: 1.22em;
-  padding: 14px 0;
+  font-size: 1.2em;
+  padding: 13px 0;
   cursor: pointer;
   border: none;
   border-radius: 18px;
@@ -78,80 +87,97 @@ button {
   box-shadow: var(--button-glow), var(--shadow);
   color: white;
   font-weight: 700;
-  transition: background 0.22s, transform 0.18s, box-shadow 0.22s;
+  letter-spacing: 0.02em;
+  transition: background 0.19s, transform 0.17s, box-shadow 0.19s;
+  outline: none;
 }
-button:hover:not(:disabled) {
+button:hover:not(:disabled), .btn-calc:hover:not(:disabled) {
   background: linear-gradient(95deg, var(--primary) 42%, var(--accent) 100%);
-  transform: scale(1.04) translateY(-2px);
+  transform: scale(1.038) translateY(-2px);
   box-shadow: 0 0 28px 5px var(--accent);
 }
-.result {
-  margin-top: 28px;
-  white-space: pre-wrap;
-  font-size: 1.03em;
-  line-height: 1.5;
-  color: var(--dark);
-  max-height: 360px;
-  overflow-y: auto;
-  padding-right: 12px;
+button:disabled {
+  background: #cccccc;
+  box-shadow: none;
+  color: #888;
+  cursor: not-allowed;
 }
-.chart-container {
-  margin: 24px auto 0 auto;
+
+.result {
+  margin-top: 25px;
+  white-space: pre-wrap;
+  font-size: 1.04em;
+  line-height: 1.52;
+  color: var(--dark);
+  max-height: 330px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.chart-container, #chartBox, #reducedChartBox {
+  margin: 21px auto 0 auto;
   width: 100%;
-  max-width: 480px;
+  max-width: 440px;
   background: #fff;
   border-radius: 14px;
   box-shadow: 0 3px 18px #feb47b31;
-  padding: 22px 12px 18px 12px;
-}
-.chart-label {
-  text-align: center;
-  font-weight: bold;
-  font-size: 1.23em;
-  color: var(--primary);
-  margin-bottom: 12px;
-  letter-spacing: 1px;
+  padding: 20px 8px 18px 8px;
 }
 
-/* Responsive Design for Mobile */
-@media (max-width: 640px) {
+.chart-label, .reduced-chart-label {
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.22em;
+  color: var(--primary);
+  margin-bottom: 10px;
+  letter-spacing: 0.8px;
+}
+
+@media (max-width: 650px) {
   h1 {
-    font-size: 1.5em;
-    margin: 30px 0 16px;
+    font-size: 1.14em;
+    margin: 22px 0 11px;
   }
   .container {
-    padding: 14px 4vw 14px 4vw;
-    border-radius: 12px;
+    padding: 14px 4vw 12px 4vw;
+    border-radius: 13px;
     max-width: 99vw;
   }
   label {
-    font-size: 1em;
-    margin-top: 10px;
-    margin-bottom: 5px;
+    font-size: 0.97em;
+    margin-top: 9px;
+    margin-bottom: 3px;
   }
-  input[type="text"] {
-    font-size: 1em;
-    padding: 10px;
+  input, input[type="text"], input[type="email"], textarea {
+    font-size: 0.98em;
+    padding: 9px;
+    margin-bottom: 8px;
+    border-radius: 8px;
   }
-  button {
+  button, .btn-calc, .cta-contact, .submit-btn, .close-btn {
     font-size: 1em;
-    padding: 10px 0;
-    border-radius: 14px;
-    margin-top: 18px;
+    padding: 9px 0;
+    border-radius: 11px;
+    margin-top: 14px;
   }
   .result {
-    font-size: 0.90em;
-    max-height: 200px;
-    margin-top: 20px;
-    padding-right: 2px;
+    font-size: 0.9em;
+    max-height: 185px;
+    margin-top: 14px;
+    padding-right: 1px;
   }
-  .chart-container {
+  .chart-container, #chartBox, #reducedChartBox {
     max-width: 97vw;
-    padding: 10px 2px 12px 2px;
-    border-radius: 10px;
+    padding: 7px 2px 9px 2px;
+    border-radius: 7px;
   }
-  .chart-label {
+  .chart-label, .reduced-chart-label {
     font-size: 1.05em;
-    margin-bottom: 7px;
+    margin-bottom: 5px;
   }
+}
+
+/* Nice transition for modal popups and cards */
+.modal-content, .container {
+  transition: box-shadow 0.22s, border-radius 0.18s, background 0.27s;
 }
